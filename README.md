@@ -141,8 +141,6 @@ dev.off()
 
 ## STEP 4: Prepare data for Maxent and run Maxent
 
-### GET RANDOM POINTS
-
 For maxent SDM we need two types of data: species occurrence data and background data. Species occurrence data are the locations where the species has been observed, while background data are randomly sampled points across the study area (i.e., pseudo-absences). The Maxent algorithm uses these two types of data to model the relationship between the species and the environmental variables.
 
 Refer to the Maxent documentation for more information on the Maxent algorithm and its implementation.
@@ -181,7 +179,7 @@ bg = predicts::backgroundSample(n=1000,
 ```
 
 
-### Using SDMtune package
+### Using SDMtune to fit the model
 
 We then use the SDMtune to set up the data for model training. This first step creates an SWD (sample with data) object for use in model training. The SWD object contains the species occurrence data, background data, and environmental data.
 
