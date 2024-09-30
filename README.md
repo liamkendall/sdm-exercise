@@ -139,21 +139,13 @@ plot(bio19[[12:16]],col=map.pal("viridis", 100))
 dev.off()
 ```
 
-## STEP 4: Prepare data for Maxent and run Maxent
+## STEP 4: Prepare data for Maxent
 
 For maxent SDM we need two types of data: species occurrence data and background data. Species occurrence data are the locations where the species has been observed, while background data are randomly sampled points across the study area (i.e., pseudo-absences). The Maxent algorithm uses these two types of data to model the relationship between the species and the environmental variables.
 
 Refer to the Maxent documentation for more information on the Maxent algorithm and its implementation.
 Phillips, S. J. (2005). A brief tutorial on Maxent. AT&T Research, 190(4), 231-259.
 
-
-
-We need occurrenct points which is sometimes called observed occurrences
-Then we also need where the species are not present, also called absense
-Logistic model, # Presense = 1, Absense  = 0
-But Maxent is popular because we do not necessarily need or have Absense data
-We can randomly genereate these points and using Maxent model try to 
-approximate the species distribution, please refer to 
 
 ###  Presence points
 
