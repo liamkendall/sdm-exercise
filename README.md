@@ -268,7 +268,9 @@ dev.off()
 
 ### Questions
 
-How well does the model predict the occurrence of Bombus muscorum? refer to the AUC curve and the response curves for the two environmental variables. What does it tell us about this species environmental tolerances in terms of temperature and rainfall?
+1. How well does the model predict the occurrence of Bombus muscorum? refer to the AUC curve and the response curves for the two environmental variables. 
+2. Compare the maps and response curves of MAT and MAP with the mapped predictions, what does it tell us about this species environmental tolerances in terms of temperature and rainfall?
+3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus muscorum in Sweden? Why?
 
 
 
