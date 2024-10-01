@@ -60,7 +60,7 @@ There are different ways of implementing a SDM. Here we will use a common workfl
 First, we create a boundary box limited by the range of species to be modelled. We will use this boundary box to crop the shapefile and raster data to the study area extent. I have already set this based upon species occurrences.
 
 ``` r
-ext = c(11.0273686052, 20, 23.9033785336, 62) 
+ext = c(11.0273686052, 20, 23.9033785336, 62) # xmin, xmax, ymin, ymax
 plot(ext(ext))
 ```
 
@@ -262,6 +262,6 @@ dev.off()
 
 ### Fun
 
-If there is time, navigate to Artportalen, download occurrence data for another bumblebee species, and fit a Maxent model for that species. Be careful to re-assess the spatial boundaries for the new species. Compare the results with the model for Bombus muscorum. What are the differences in the environmental variables that are important for the two species? What are the differences in the predicted distributions of the two species?
+If there is time, download occurrence data for the other bumblebee species in the data folder (soroeensis.csv), and fit a Maxent model for that species. Be careful to re-assess the spatial boundaries for the new species. Compare the results with the model for Bombus muscorum. What are the differences in the environmental variables that are important for the two species? What are the differences in the predicted distributions of the two species?
 
 
