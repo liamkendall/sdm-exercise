@@ -4,13 +4,6 @@ In this exercise, you will fit a species distribution model (SDM) for a threaten
 
 ## SETUP R PROJECT
 
-It is good practice to ensure that your R session is clean before starting a new project. This will help you avoid any conflicts with existing objects in your workspace, and ensure your code is reproducible. You can clear your workspace and memory using the following commands:
-
-``` r
-gc()            # clear memory
-rm(list=ls())   # clear R session
-```
-
 - Set work directory
 
 The next step is to make sure you are working in the correct directory. This is an important step because we want to make sure our data and outputs are saved clearly inside our project folder. So, we first make sure that we are working inside our project directory. To check the current project directory use getwd() function. And to change the current working directory to a new one, use the setwd() function
@@ -20,14 +13,17 @@ The next step is to make sure you are working in the correct directory. This is 
 getwd()
 ```
 
+Download the mosshumla occurrence dataset from the data folder (https://github.com/liamkendall/sdm-exercise/tree/main/data) and put it in a new folder called data in your working directory.
+
+
 ## STEP 1: Install required libraries
 
 For this exercise, we need to install some R packages. Make sure to run them
 for first time.
 
-Dismo, SDMtune are for fitting SDMs
-Terra and sf are for processing spatial data
-Viridis is for color palettes
+Dismo, SDMtune are for fitting SDMs.
+Terra and sf are for processing spatial data.
+Viridis is for color palettes.
 
 ``` r
 install.packages("dismo",dependencies = T)
@@ -59,9 +55,9 @@ There are different ways of implementing a SDM. Here we will use a common workfl
 6) Assessing model performance
 7) Visualizing the model results
 
-## 2.1 GET BD SHAPEFILE and WORLCLIM data
+## 2.1 Get a shapefile of (Southern) Sweden
 
-First, we create a boundary box limited by the range of species to be modelled. We will use this boundary box to crop the shapefile and raster data to the study area extent.
+First, we create a boundary box limited by the range of species to be modelled. We will use this boundary box to crop the shapefile and raster data to the study area extent. I have already set this based upon species occurrences.
 
 ``` r
 ext = c(11.0273686052, 20, 23.9033785336, 62) 
@@ -69,6 +65,7 @@ plot(ext(ext))
 ```
 
 Second, we will download the shapefile for Sweden from the GADM database. The GADM database provides administrative boundaries for countries at different levels of detail. We will download the shapefile for Sweden at the first administrative level (län) using the `gadm()` function from the `geodata` package.
+
 ``` r
 #help(getData,raster)
 bd  = gadm(country='Sweden',level=1,path = "./data",download = T)
@@ -90,7 +87,7 @@ plot(bd,axes=T, main="Cropped shapefile")
 ```
 
 
-## 2.2 Raster/Image data: GET WORLD CLIM DATA 
+## 2.2 Raster/Image data: Climatic data
 
 The worldclim dataset provides global bioclimatic variables at different spatial resolutions. We will download 19 bioclimatic variables for Sweden at a resolution of 0.5 degrees (~1km). The bioclimatic variables are derived from monthly temperature (variables 1:11) and precipitation (12:19) data and are commonly used as environmental predictors in SDMs. See the WorldClim website for more information on the 19 bioclimatic variables and data sources.
 
@@ -104,7 +101,6 @@ bio19 = geodata::worldclim_country(
   )
 
 ```
-
 
 ### Plotting raster images
 
@@ -264,5 +260,8 @@ dev.off()
 2. Compare the maps and response curves of MAT and MAP with the mapped predictions, what does it tell us about this species environmental tolerances in terms of temperature and rainfall?
 3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus muscorum in Sweden? Why?
 
+### Fun
+
+If there is time, navigate to Artportalen, download occurrence data for another bumblebee species, and fit a Maxent model for that species. Be careful to re-assess the spatial boundaries for the new species. Compare the results with the model for Bombus muscorum. What are the differences in the environmental variables that are important for the two species? What are the differences in the predicted distributions of the two species?
 
 
