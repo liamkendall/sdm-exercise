@@ -214,7 +214,7 @@ mx1 = train(
 
 
 ### Model results
-SDMtune has several functions to show the model results. First we can plot the response curves against mean annual temperature (bio_1) and mean annual precipitation (bio_12) i.e., how likely is the species to occur given different values of these environmental variables.
+SDMtune has several functions to show the model results. First we can plot the response curves against mean annual temperature (bio_1) and mean annual precipitation (bio_12) i.e., how likely is the species to occur given different values of these environmental variables. Try it for other environmental variables (replace the 1 or 12 with a number between 2 - 19 in the below functions and refer to the worldclim guide for the variable name)
 
 ``` r
 # plot the response curve
@@ -256,7 +256,7 @@ dev.off()
 
 ### Questions
 
-1. How well does the model predict the occurrence of Bombus muscorum? refer to the AUC curve and the response curves for the two environmental variables. 
+1. How well does the model predict the occurrence of Bombus muscorum? refer to the AUC curve and the response curves for the two environmental variables. Do you think there could be anything else driving the very-high AUC value?
 2. Compare the maps and response curves of MAT and MAP with the mapped predictions, what does it tell us about this species environmental tolerances in terms of temperature and rainfall?
 3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus muscorum in Sweden? Why?
 
