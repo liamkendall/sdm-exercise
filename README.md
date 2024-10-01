@@ -126,11 +126,11 @@ plot(bio19[[1:4]],col=map.pal("viridis", 100))
 plot(bio19[[12:16]],col=map.pal("viridis", 100))
 
 # saving the results
-pdf("./result/bio1-4.pdf",width = 6,height = 4)
+pdf("bio1-4.pdf",width = 6,height = 4)
 plot(bio19[[1:4]],col=map.pal("viridis", 100))
 dev.off()
 
-pdf("./result/bio12-16.pdf",width = 6,height = 4)
+pdf("bio12-16.pdf",width = 6,height = 4)
 plot(bio19[[12:16]],col=map.pal("viridis", 100))
 dev.off()
 ```
@@ -214,7 +214,7 @@ mx1 = train(
 
 
 ### Model results
-SDMtune has several functions to show the model results. First we can plot the response curves against mean annual temperature (bio_1) and mean annual precipitation (bio_12)
+SDMtune has several functions to show the model results. First we can plot the response curves against mean annual temperature (bio_1) and mean annual precipitation (bio_12) i.e., how likely is the species to occur given different values of these environmental variables.
 
 ``` r
 # plot the response curve
@@ -245,7 +245,7 @@ Finally, we use the plotPred function to generate a map of the predicted probabi
 ``` r
 dev.off() # clear the plotting window first
 # saving the results
-pdf("./result/predictions.pdf",width = 6,height = 4)
+pdf("predictions.pdf",width = 6,height = 4)
 par(pty="s")
 plotPred(map, 
  lt = "Climate\nsuitability",
