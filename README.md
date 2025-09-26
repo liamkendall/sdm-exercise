@@ -1,6 +1,6 @@
 # Maxent demonstration using R
 
-In this exercise, you will fit a species distribution model (SDM) for a threatened bumblebee species (Mosshumla, Bombus muscorum) in Sweden. The model will be fitted using the Maxent algorithm, which is a popular machine learning algorithm for SDMs. The model will be trained using bioclimatic variables from the WorldClim dataset and occurrence data for the species sourced from Artportalen (https://artportalen.se/). The model will be used to predict the potential distribution of the species throughout southern Sweden.
+In this exercise, you will fit a species distribution model (SDM) for one of four bumblebee species (Bombus muscorum, jonellus, soroeensis or monticola) in Sweden. The model will be fitted using the Maxent algorithm, which is a popular machine learning algorithm for SDMs. The model will be trained using bioclimatic variables from the WorldClim dataset and occurrence data for the species sourced from Artportalen (https://artportalen.se/). The model will be used to predict the potential distribution of the species throughout southern Sweden.
 
 ## SETUP R PROJECT
 
