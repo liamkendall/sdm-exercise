@@ -31,6 +31,7 @@ install.packages("SDMtune",dependencies = T)
 install.packages("terra",dependencies = T)
 install.packages("viridis",dependencies = T)
 install.packages("sf",dependencies = T)
+install.packages("ggplot2",dependencies = T)
 ```
 
 After installing the packages, we need to load them
@@ -42,6 +43,7 @@ library(terra)
 library(geodata)
 library(viridis)
 library(sf)
+library(ggplot2)
 ```
 
 ## Step 2 : Prepare data for model
