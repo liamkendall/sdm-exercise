@@ -30,6 +30,7 @@ install.packages("dismo",dependencies = T)
 install.packages("SDMtune",dependencies = T)
 install.packages("terra",dependencies = T)
 install.packages("viridis",dependencies = T)
+install.packages("geodata",dependencies = T)
 install.packages("sf",dependencies = T)
 install.packages("ggplot2",dependencies = T)
 ```
