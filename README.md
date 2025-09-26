@@ -58,7 +58,7 @@ There are different ways of implementing a SDM. Here we will use a common workfl
 6) Assessing model performance
 7) Visualizing the model results
 
-## 2.1 Get a shapefile of (Southern) Sweden
+## 2.1 Get a shapefile of Sweden
 
 First, we create a boundary box limited by the range of species to be modelled. We will use this boundary box to crop the shapefile and raster data to the study area extent. I have already set this based upon species occurrences.
 
