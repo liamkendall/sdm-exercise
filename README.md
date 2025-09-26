@@ -169,6 +169,7 @@ We randomly sample 1000 points across our study area to represent background poi
 
 ``` r
 # Absense points
+install.packages("predicts")
 bg = predicts::backgroundSample(n=1000,
                                 bio19[[1]])
 ```
