@@ -261,6 +261,6 @@ https://www.cambridge.org/core/services/aop-cambridge-core/content/view/FFA0880C
 
 2. Compare the maps and response curves of MAT and MAP with the mapped predictions, what does it tell us about this species environmental tolerances in terms of temperature and rainfall?
 
-3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus muscorum in Sweden? Why?
+3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus sp. in Sweden? Why?
 
 
