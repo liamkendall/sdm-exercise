@@ -1,4 +1,4 @@
-# Where else might the bumblebees be? An exerciese in species distribution modelling.
+# Where else might the bumblebees be? An exercise in species distribution modelling.
 
 In this exercise, you will turn observation records and climate maps into a **species distribution model (SDM)**. You will make two presentation-ready maps: **where the bee has been recorded** and **where the climate model predicts relatively suitable conditions**. Then you will decide what those maps can, and cannot, tell a conservation manager.
 
