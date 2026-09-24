@@ -1,270 +1,263 @@
-# Maxent demonstration using R
+# Where else might the bumblebees be? An exerciese in species distribution modelling.
 
-In this exercise, you will fit a species distribution model (SDM) for one of four bumblebee species (Bombus muscorum, jonellus, soroeensis or monticola) in Sweden. The model will be fitted using the Maxent algorithm, which is a popular machine learning algorithm for SDMs. The model will be trained using bioclimatic variables from the WorldClim dataset and occurrence data for the species sourced from Artportalen (https://artportalen.se/). The model will be used to predict the potential distribution of the species throughout southern Sweden.
+In this exercise, you will turn observation records and climate maps into a **species distribution model (SDM)**. You will make two presentation-ready maps: **where the bee has been recorded** and **where the climate model predicts relatively suitable conditions**. Then you will decide what those maps can, and cannot, tell a conservation manager.
 
-## SETUP R PROJECT
+You can use the same code for any of four Swedish bumblebees. The modelling method is **Maxnet**, an R implementation of maximum entropy modelling. It compares the climates at recorded locations with climates available across the study area; it does **not** need confirmed absences.
 
-- Set work directory
+| Choose this key | Swedish name | Scientific name | Records supplied |
+| --- | --- | --- | ---: |
+| `"mosshumla"` | Mosshumla | *Bombus muscorum* | 757 |
+| `"berghumla"` | Berghumla | *Bombus monticola* | 442 |
+| `"blaklockshumla"` | Blåklockshumla | *Bombus soroeensis* | 5,307 |
+| `"ljunghumla"` | Ljunghumla | *Bombus jonellus* | 1,852 |
 
-The next step is to make sure you are working in the correct directory. This is an important step because we want to make sure our data and outputs are saved clearly inside our project folder. So, we first make sure that we are working inside our project directory. To check the current project directory use getwd() function. And to change the current working directory to a new one, use the setwd() function
+**Mission:** Pick a species, make its maps, and find one *surprise* in the result. When groups finish, compare maps: do different bees seem to favour different parts of Sweden?
 
-``` r
-# Check current working directory
-getwd()
-```
+## Before you start
 
-Download the mosshumla occurrence dataset from the data folder (https://github.com/liamkendall/sdm-exercise/tree/main/data) and put it in a new folder called data in your working directory.
+1. Download the prepared repository ZIP (or clone the prepared repository) and open `sdm-exercise.Rproj` in RStudio. The `data` folder should be beside the project file. Keep the working directory at the project root: `getwd()` should end in `sdm-exercise`.
+2. Install the R packages once, ideally **before class**. The exercise reads all observation, climate and map data from the project folder; it does not download data when you run it. Maxnet does not need Java.
+3. Run the code blocks **in order**. Change only `species_key` to switch bees. Files for each species go into a separate folder under `results`. You can also open `README.Rmd` in RStudio and run its chunks or knit it as an illustrated HTML handout (install `rmarkdown` first if RStudio asks).
 
+```r
+packages <- c("SDMtune", "terra", "sf", "ggplot2")
+missing <- packages[!vapply(packages, requireNamespace, logical(1),
+                            quietly = TRUE)]
+if (length(missing)) {
+  stop("Install these R packages before class: ", paste(missing, collapse = ", "))
+}
 
-## STEP 1: Install required libraries
-
-For this exercise, we need to install some R packages. Make sure to run them
-for first time.
-
-Dismo, SDMtune are for fitting SDMs.
-Terra and sf are for processing spatial data.
-Viridis is for color palettes.
-
-``` r
-install.packages("dismo",dependencies = T)
-install.packages("SDMtune",dependencies = T)
-install.packages("terra",dependencies = T)
-install.packages("viridis",dependencies = T)
-install.packages("geodata",dependencies = T)
-install.packages("sf",dependencies = T)
-install.packages("ggplot2",dependencies = T)
-```
-
-After installing the packages, we need to load them
-
-``` r
 library(SDMtune)
-library(dismo)
 library(terra)
-library(geodata)
-library(viridis)
 library(sf)
 library(ggplot2)
+
+set.seed(42)  # Repeatable thinning and background sampling
 ```
 
-## Step 2 : Prepare data for model
+> **Teaching tip:** The prepared files `data/climate_sweden.tif` and `data/sweden.geojson` are **included** in this project. Students do not run a data download. To rebuild these files later, delete them and run `Rscript scripts/prepare_data.R` on a computer with internet access, then commit both resulting files. The script reads three [CHELSA V2.1](https://www.chelsa-climate.org/datasets/chelsa_bioclim) bioclimatic layers for 1981–2010 and a [Natural Earth](https://www.naturalearthdata.com/) boundary, then crops and resamples them to about **2.5 arc-minutes** for a manageable classroom exercise.
 
-There are different ways of implementing a SDM. Here we will use a common workflow for fitting Maxent SDMs. The workflow involves the following steps:
-1) Defining the study area/boundaries for model fitting and spatial predictions
-2) Downloading environmental data (bioclimatic variables) for the study area
-3) Obtaining species occurrence data for the target species
-4) Preparing the data for model fitting
-5) Training the Maxent model
-6) Assessing model performance
-7) Visualizing the model results
+## 1. Choose your bee
 
-## 2.1 Get a shapefile of Sweden
+The keys use plain ASCII so they are easy to type; the filenames still have their Swedish spelling. This is the **only** line you need to change for a different species.
 
-First, we create a boundary box limited by the range of species to be modelled. We will use this boundary box to crop the shapefile and raster data to the study area extent. I have already set this based upon species occurrences.
+```r
+species_key <- "mosshumla"  # Or "berghumla", "blaklockshumla", "ljunghumla"
 
-``` r
-ext = c(11.0273686052, 24, 23.9033785336, 69.06) # xmin, xmax, ymin, ymax
-plot(ext(ext))
+species <- list(
+  mosshumla = list(file = "mosshumla.csv",
+                   common = "Mosshumla", latin = "Bombus muscorum"),
+  berghumla = list(file = "berghumla.csv",
+                   common = "Berghumla", latin = "Bombus monticola"),
+  blaklockshumla = list(file = "blåklockshumla.csv",
+                        common = "Blåklockshumla", latin = "Bombus soroeensis"),
+  ljunghumla = list(file = "ljunghumla.csv",
+                    common = "Ljunghumla", latin = "Bombus jonellus")
+)
+
+stopifnot(species_key %in% names(species))
+bee <- species[[species_key]]
+out_dir <- file.path("results", species_key)
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+bee$latin
 ```
 
-Second, we will download the shapefile for Sweden from the GADM database. The GADM database provides administrative boundaries for countries at different levels of detail. We will download the shapefile for Sweden at the first administrative level (län) using the `gadm()` function from the `geodata` package.
+## 2. Give the model a climate map
 
-``` r
-#help(getData,raster)
-bd  = gadm(country='Sweden',level=1,path = "./data",download = T)
-bd_main = bd # saving in a new variable to use later
+We use just **three** CHELSA variables so that the model and its response curves are easier to explore. They describe annual mean temperature (**BIO1**), annual precipitation (**BIO12**), and precipitation seasonality (**BIO15**). The model can learn curved relationships using linear and quadratic features.
+
+Sweden is our shared **study area** for all four species. We mask out neighbouring countries so the background points and the final map cover the same area.
+
+```r
+inputs <- c("data/sweden.geojson", "data/climate_sweden.tif")
+if (!all(file.exists(inputs))) {
+  stop("Missing prepared files: ", paste(inputs[!file.exists(inputs)],
+                                         collapse = ", "),
+       ". Ask your teacher for the complete project download.")
+}
+sweden <- terra::vect("data/sweden.geojson")
+climate <- terra::rast("data/climate_sweden.tif")
+stopifnot(terra::nlyr(climate) == 3)
+names(climate) <- c("bio1", "bio12", "bio15")
+
+names(climate)  # Check the names before plotting response curves
+plot(climate[[1]], main = "Annual mean temperature")
 ```
 
-Third, we crop the country shape file to study area extent
+**Look at the climate map:** What parts of Sweden are most different? What else, apart from climate, could make those regions differ for bumblebees?
 
-``` r
-bd  = crop(bd,extent(ext))
+## 3. Map where people found the bee
+
+The supplied CSVs contain Swedish **RT90 coordinates (EPSG:3021)**. We transform them to longitude and latitude to match WorldClim. These are *observations*, not a systematic survey or proof that the species is absent elsewhere.
+
+```r
+records <- read.csv(file.path("data", bee$file), sep = ";",
+                    fileEncoding = "UTF-8-BOM")
+stopifnot(all(c("Ost", "Nord") %in% names(records)))
+
+observations <- sf::st_as_sf(records, coords = c("Ost", "Nord"),
+                             crs = 3021)
+observations <- sf::st_transform(observations, 4326)
+
+records_map <- ggplot() +
+  geom_sf(data = sf::st_as_sf(sweden), fill = "#EAF1ED",
+          colour = "#91A99F", linewidth = 0.25) +
+  geom_sf(data = observations, colour = "#C84E3B",
+          alpha = 0.45, size = 0.55) +
+  coord_sf(expand = FALSE, datum = NA) +
+  labs(title = paste(bee$common, "|", bee$latin),
+       subtitle = paste(format(nrow(records), big.mark = ","),
+                        "supplied observation records"),
+       caption = "Dots show reported locations, not surveyed absences") +
+  theme_void(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 17,
+                                  colour = "#17394A"),
+        plot.subtitle = element_text(colour = "#536A71"),
+        plot.caption = element_text(colour = "#536A71"),
+        plot.background = element_rect(fill = "white", colour = NA))
+
+print(records_map)
+ggsave(file.path(out_dir, "01_observations.png"), plot = records_map,
+       width = 7, height = 8, dpi = 250, bg = "white")
 ```
 
-Finally, we plot the shapefile to visualize the study area boundary. We can also overlay the cropped shapefile on the original shapefile to see the difference.
+**Pause:** Do the dots resemble a biological distribution, a map of where people go, or both? Name a place you would like to survey next.
 
-``` r
-par(mfrow=c(1,2))
-plot(bd_main,axes=T, main="Sweden län")
-plot(bd,axes=T, main="Cropped shapefile")
+## 4. Train the model
+
+Maxnet needs **presence points** (records) and **background points** (climates available across Sweden). Background points are *not known absences*. To avoid counting the same climate grid cell repeatedly, keep at most one observation per cell.
+Records outside the prepared climate grid (for example, on very small islands) will not enter the model, although they remain visible on the observation map.
+
+```r
+xy <- as.data.frame(sf::st_coordinates(observations))
+names(xy) <- c("x", "y")
+presence <- as.data.frame(SDMtune::thinData(xy, env = climate))
+
+background <- terra::spatSample(climate[[1]], size = 2000,
+                                method = "random", na.rm = TRUE,
+                                xy = TRUE, values = FALSE)
+
+cat("Original records:", nrow(records), "\n")
+cat("Cells retained for modelling:", nrow(presence), "\n")
+
+samples <- SDMtune::prepareSWD(species = bee$latin,
+                                p = presence, a = background,
+                                env = climate)
+
+# Hold back 20% of presence cells for a brief predictive check later.
+parts <- SDMtune::trainValTest(samples, test = 0.2,
+                               only_presence = TRUE, seed = 42)
+
+model <- SDMtune::train(method = "Maxnet", data = parts[[1]],
+                        fc = "lq", reg = 1)
+model
 ```
 
+The model asks: **which combinations of these three climates occur more often at reported bee locations than across Sweden as a whole?**
 
-## 2.2 Raster/Image data: Climatic data
+## 5. Reveal the suitability map
 
-The worldclim dataset provides global bioclimatic variables at different spatial resolutions. We will download 19 bioclimatic variables for Sweden at a resolution of 0.5 degrees (~1km). The bioclimatic variables are derived from monthly temperature (variables 1:11) and precipitation (12:19) data and are commonly used as environmental predictors in SDMs. See the WorldClim website for more information on the 19 bioclimatic variables and data sources.
+Now apply the fitted relationships to **every climate grid cell in Sweden**. The palette runs from cool blue (lower relative suitability) to warm coral (higher). This map is a modelled *climatic suitability score*, **not** a census, a confirmed range boundary, or a calibrated probability that a bee occupies a cell.
 
-``` r
-bio19 = geodata::worldclim_country(
-  country='Sweden',
-  var='bio',
-  res=0.5,
-  path = "./data",
-  download=T
-  )
+```r
+suitability <- predict(model, data = climate, type = "logistic")
 
+palette <- c("#143D55", "#287D91", "#A5CCC0", "#F4D392", "#D76346")
+map_cells <- as.data.frame(suitability, xy = TRUE, na.rm = TRUE)
+names(map_cells)[3] <- "score"
+
+suitability_map <- ggplot(map_cells, aes(x = x, y = y, fill = score)) +
+  geom_raster() +
+  geom_sf(data = sf::st_as_sf(sweden), inherit.aes = FALSE,
+          fill = NA, colour = "#294851", linewidth = 0.25) +
+  scale_fill_gradientn(colours = palette, limits = c(0, 1),
+                       name = "Relative\nsuitability") +
+  coord_sf(expand = FALSE, datum = NA) +
+  labs(title = paste("Where could", bee$common, "find suitable climate?"),
+       subtitle = paste(bee$latin, "| Three climate variables | Sweden"),
+       caption = "Relative climate suitability • CHELSA 1981–2010") +
+  theme_void(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", size = 16,
+                                  colour = "#17394A"),
+        plot.subtitle = element_text(colour = "#536A71"),
+        plot.caption = element_text(colour = "#536A71"),
+        legend.position = "bottom",
+        legend.key.width = grid::unit(1.5, "cm"),
+        plot.background = element_rect(fill = "white", colour = NA))
+
+print(suitability_map)
+ggsave(file.path(out_dir, "02_climate_suitability.png"),
+       plot = suitability_map, width = 8, height = 8,
+       dpi = 250, bg = "white")
 ```
 
-### Plotting raster images
+**Compare the two maps:** Where does the model predict suitable climate without many records? What might explain that gap? Is there an area with records but relatively low modelled suitability?
 
-We can check the images using default plot function.
+### What climate relationships did it learn?
 
-``` r
- # crop the data to the extent of the study area
-bio19 = crop(bio19,extent(ext)) 
+Response curves vary one climate variable while keeping the other two at their mean values. The small marks on the x-axis show climates at records and background points. Pay most attention to parts of a curve supported by observations; three climate variables can still be correlated.
 
-# HOW TO PLOT RASTER AND SHAPEFILE
-plot(bio19[[1]],main="Annual mean temperature",col=map.pal("viridis", 100))
-plot(bd,add=T)
+```r
+climate_labels <- c("Annual mean temperature",
+                    "Annual precipitation",
+                    "Precipitation seasonality")
+
+for (i in seq_along(climate_labels)) {
+  curve <- SDMtune::plotResponse(
+    model, var = names(climate)[i], type = "logistic",
+    marginal = TRUE, rug = TRUE
+  ) +
+    labs(title = climate_labels[i],
+         subtitle = paste("Model response for", bee$latin),
+         y = "Relative suitability score") +
+    theme_minimal(base_size = 12)
+
+  print(curve)
+  ggsave(file.path(out_dir, paste0("response_bio",
+                                   c(1, 12, 15)[i], ".png")),
+         plot = curve, width = 7, height = 4.5,
+         dpi = 220, bg = "white")
+}
 ```
 
+**Think:** Which variable appears to change the predicted score most? Can a response curve by itself show that temperature or rainfall *causes* the distribution?
 
-Separately we can plot first four layers also.
+## Aside: How convincing is the prediction?
 
-``` r
-# first four temperature layers
-plot(bio19[[1:4]],col=map.pal("viridis", 100))
+We withheld 20% of presence cells before fitting. AUC asks how often the model ranks a withheld presence above a background location. Compare **training AUC** and **held-out AUC** rather than interpreting a training score alone.
 
-# first four rainfall layers
-plot(bio19[[12:16]],col=map.pal("viridis", 100))
+```r
+train_auc <- SDMtune::auc(model)
+test_auc <- SDMtune::auc(model, test = parts[[2]])
+cat(sprintf("Training AUC: %.3f | Held-out AUC: %.3f\n",
+            train_auc, test_auc))
 
-# saving the results
-pdf("bio1-4.pdf",width = 6,height = 4)
-plot(bio19[[1:4]],col=map.pal("viridis", 100))
-dev.off()
+roc_plot <- SDMtune::plotROC(model, test = parts[[2]]) +
+  labs(title = paste("A predictive check for", bee$latin),
+       subtitle = "Training and held-out presence versus background") +
+  theme_minimal(base_size = 12)
 
-pdf("bio12-16.pdf",width = 6,height = 4)
-plot(bio19[[12:16]],col=map.pal("viridis", 100))
-dev.off()
+print(roc_plot)
+ggsave(file.path(out_dir, "03_roc.png"), plot = roc_plot,
+       width = 7, height = 5, dpi = 220, bg = "white")
 ```
 
-## STEP 4: Prepare data for Maxent
+A high score can still be misleading. Nearby observations may share almost the same climate, even when randomly assigned to opposite sets. AUC also depends on the **background area**: distinguishing a bee's records from the whole of Sweden may be easier than predicting a new locality nearby. Neither AUC nor a striking map tells us whether flowers, nesting habitat, land use, disease, dispersal, or recorder effort limit the species. For serious use, you would examine record quality and dates, consider spatial validation, and test additional ecological predictors. [SDMtune's evaluation guide](https://consbiol-unibern.github.io/SDMtune/articles/evaluation-strategies.html)
 
-For maxent SDM we need two types of data: species occurrence data and background data. Species occurrence data are the locations where the species has been observed, while background data are randomly sampled points across the study area (i.e., pseudo-absences). The Maxent algorithm uses these two types of data to model the relationship between the species and the environmental variables.
+## Your final challenge
 
-Refer to the Maxent documentation for more information on the Maxent algorithm and its implementation.
-Phillips, S. J. (2005). A brief tutorial on Maxent. AT&T Research, 190(4), 231-259.
+Work with another group modelling a different species. Show each other the two maps and answer:
 
+1. **Discovery:** What is the most interesting predicted area for your bee, and why?
+2. **Evidence:** Do the observed records support that pattern? What do the response curves add?
+3. **Decision:** If you could survey only one new area, where would you go? How would a survey help distinguish model error from missing reports?
+4. **Limit:** Could these climate-only maps establish whether climate change or land-use change is more important? What new data would you need?
 
-###  Presence points
+**Takeaway:** An SDM can turn scattered records into an explicit, testable map of where environmental conditions look similar to those at known sites. Its best use is often to generate better questions and guide the next survey.
 
-``` r
-# load species occurrence data 
-#choose the one 
-occ = read.csv("./data/mosshumla.csv",sep=";")
-occ = read.csv("./data/berghumla.csv",sep=";")
-occ = read.csv("./data/blåklockshumla.csv",sep=";")
-occ = read.csv("./data/ljunghumla.csv",sep=";")
+### Data and tools
 
-#these functions convert the data to spatial data frame
-occ=st_as_sf(occ,coords=c("Ost","Nord"),crs=3021) 
-#and then transform the data to the appropriate projection (WGS84)
-occ = st_transform(occ,4326)
-
-# extract just the coordinates of each occurrence record
-occ_coordinates=st_coordinates(occ)
-```
-
-We randomly sample 1000 points across our study area to represent background points, to generate 'pseudo-absences'.
-
-``` r
-# Absense points
-install.packages("predicts")
-bg = predicts::backgroundSample(n=1000,
-                                bio19[[1]])
-```
-
-
-### Using SDMtune to fit the model
-
-We then use the SDMtune to set up the data for model training. This first step creates an SWD (sample with data) object for use in model training. The SWD object contains the species occurrence data, background data, and environmental data.
-
-``` r
-# Prepare data SWD object
-data <- SDMtune::prepareSWD(
-  species = "mosshumla", #species name
-  p = occ_coordinates, #coordinates
-  a = bg, #back ground points
-  env = bio19, #environmental data
-  )
-```
-
-You can check the SWD object using @ (at) sign to see how the data is stored
-
-``` r
-# check the data object, what is inside
-data@species
-data@data[1:10,1:3]
-data@pa[1:6]
-data@coords[1:6,]
-```
-
-
-## Step 5. Train a simple maxent model
-
-We can then use the train() function from the SDMtune package to train a Maxent model. The train() function takes several arguments, including the method (in this case, "Maxnet" i.e., Maxent in R), the feature classes to use (e.g., linear, quadratic, hinge), the regularization value, and the number of iterations. The train() function returns a trained model object that can be used to make predictions on new data.
-
-See https://onlinelibrary.wiley.com/doi/10.1111/j.1472-4642.2010.00725.x for more details on feature classes and regularization values.
-
-
-``` r
-mx1 = train(
-  method = "Maxnet",  # the name of the model
-  fc="lq",           # feature classes: linear, and quadratic
-  reg=0.5,            # regularization parameters
-  verbose = T,        # show message during training
-  data = data,        # the data variable
-  iter = 1000         # number of iterations the logarithm will run
-  )    
-```
-
-
-### Model results
-SDMtune has several functions to show the model results. First we can plot the response curves against mean annual temperature (bio_1) and mean annual precipitation (bio_12) i.e., how likely is the species to occur given different values of these environmental variables. Try it for other environmental variables (replace the 1 or 12 with a number between 2 - 19 in the below functions and refer to the worldclim guide for the variable name)
-
-``` r
-# plot the response curve
-plotResponse(mx1, var = c("wc2.1_30s_bio_1"), type = "logistic") #mean annual temperature
-plotResponse(mx1, var = c("wc2.1_30s_bio_12"), type = "logistic") #mean annual precipitation
-```
-
-Then we can plot the variable importance using AUC (area under curve). This gives us an idea of how well the model predicts the species distribution based on the environmental variables. Closer to 1 means more accurate predictions.
-
-``` r  
-# Then we plot the ROC curve for our model which shows the traing AUC
-auc(mx1)        # just to get the model AUC
-plotROC(mx1)    # to plot the AUC curve
-```
-
-### Apply model prediction
-
-We can then predict the probability of occurrence in each pixel/grid cell across our study area
-
-``` r
-map = predict(mx1, data=bio19, type="logistic")
-```
-
-## Step 6. Visualize results
-
-Finally, we use the plotPred function to generate a map of the predicted probability of occurrence across our study area. The plotPred function takes several arguments, including the map object (i.e., the predicted probability of occurrence), the legend title, and the color ramp to use for the map.
-
-``` r
-dev.off() # clear the plotting window first
-# saving the results
-pdf("predictions.pdf",width = 4,height = 6)
-plotPred(map, 
- lt = "Climate\nsuitability",
- colorramp = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),hr=T)+theme(aspect.ratio=2)
-dev.off()
-```
-
-### Questions
-
-1. How well does the model predict the occurrence of Bombus sp.? refer to the AUC curve and the response curves for the environmental variables. Can you believe your model? Compare your AUC value to Figure 2 in Fielding & Bell 1997
-https://www.cambridge.org/core/services/aop-cambridge-core/content/view/FFA0880CE3C3591A5906B83C04727F46/S0376892997000088a.pdf/a-review-of-methods-for-the-assessment-of-prediction-errors-in-conservation-presenceabsence-models.pdf
-
-2. Compare the maps and response curves of MAT and MAP with the mapped predictions, what does it tell us about this species environmental tolerances in terms of temperature and rainfall?
-
-3. Do you think climate change or anthropogenic land use change is more important for the distribution of Bombus sp. in Sweden? Why?
-
-
+- Occurrences: supplied coordinate-only extracts from [Artportalen](https://www.artportalen.se/). Observation dates and survey effort are not included in these teaching files.
+- Climate: [CHELSA V2.1](https://www.chelsa-climate.org/datasets/chelsa_bioclim), 1981–2010 baseline; BIO1, BIO12 and BIO15, aggregated to roughly 2.5 arc-minutes. CHELSA lists the data under CC0.
+- Boundary: [Natural Earth](https://www.naturalearthdata.com/), 1:10m countries; public domain.
+- Modelling: [SDMtune](https://consbiol-unibern.github.io/SDMtune/), Maxnet implementation.
