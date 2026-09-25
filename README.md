@@ -256,16 +256,18 @@ ggsave(file.path(out_dir, "03_roc.png"), plot = roc_plot,
 
 A high score can still be misleading. Nearby observations may share almost the same climate, even when randomly assigned to opposite sets. AUC also depends on the **background area**: distinguishing a bee's records from the whole of Sweden may be easier than predicting a new locality nearby. Neither AUC nor a striking map tells us whether flowers, nesting habitat, land use, disease, dispersal, or recorder effort limit the species. For serious use, you would examine record quality and dates, consider spatial validation, and test additional ecological predictors. [SDMtune's evaluation guide](https://consbiol-unibern.github.io/SDMtune/articles/evaluation-strategies.html)
 
-## Your final challenge
+## A short report
 
-Work with another group modelling a different species. Show each other the two maps and answer:
+**Species:** Give the Swedish and scientific names, plus 2–3 sentences on foraging, nesting or habitat.
 
-1. **Discovery:** What is the most interesting predicted area for your bee, and why?
-2. **Evidence:** Do the observed records support that pattern? What do the response curves add?
-3. **Decision:** If you could survey only one new area, where would you go? How would a survey help distinguish model error from missing reports?
-4. **Limit:** Could these climate-only maps establish whether climate change or land-use change is more important? What new data would you need?
+**Figures:** Include your climate suitability map and refer to the response curves.
 
-**Takeaway:** An SDM can turn scattered records into an explicit, testable map of where environmental conditions look similar to those at known sites. Its best use is often to generate better questions and guide the next survey.
+**Answers:** Respond to the four questions using your map, curves and held-out AUC as evidence.
+
+1. What does suitable climate look like on the map? Where in Sweden is it found?
+2. Which conditions seem most suitable? What do the response curves suggest about this species’ climate optimum?
+3. Is the model well resolved? What does held-out AUC show, and what does it miss?
+4. Is Climate enough? What else determines habitat suitability for a bumblebee?
 
 ### Data and tools
 
