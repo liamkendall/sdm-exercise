@@ -27,6 +27,8 @@ if (length(missing)) {
   stop("Install these R packages before class: ", paste(missing, collapse = ", "))
 }
 
+#install.packages("SDMtune", "terra", "sf", "ggplot2","plotROC")
+
 library(SDMtune)
 library(terra)
 library(sf)
