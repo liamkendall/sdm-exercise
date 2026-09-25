@@ -20,7 +20,7 @@ You can use the same code for any of four Swedish bumblebees. The modelling meth
 3. Run the code blocks **in order**. Change only `species_key` to switch bees. Files for each species go into a separate folder under `results`. You can also open `README.Rmd` in RStudio and run its chunks or knit it as an illustrated HTML handout (install `rmarkdown` first if RStudio asks).
 
 ```r
-packages <- c("SDMtune", "terra", "sf", "ggplot2")
+packages <- c("SDMtune", "terra", "sf", "ggplot2","plotROC")
 missing <- packages[!vapply(packages, requireNamespace, logical(1),
                             quietly = TRUE)]
 if (length(missing)) {
