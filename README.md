@@ -38,8 +38,6 @@ library(plotROC)
 set.seed(42)  # Repeatable thinning and background sampling
 ```
 
-> **Teaching tip:** The prepared files `data/climate_sweden.tif` and `data/sweden.geojson` are **included** in this project. Students do not run a data download. To rebuild these files later, delete them and run `Rscript scripts/prepare_data.R` on a computer with internet access, then commit both resulting files. The script reads three [CHELSA V2.1](https://www.chelsa-climate.org/datasets/chelsa_bioclim) bioclimatic layers for 1981–2010 and a [Natural Earth](https://www.naturalearthdata.com/) boundary, then crops and resamples them to about **2.5 arc-minutes** for a manageable classroom exercise.
-
 ## 1. Choose your bee
 
 The keys use plain ASCII so they are easy to type; the filenames still have their Swedish spelling. This is the **only** line you need to change for a different species.
