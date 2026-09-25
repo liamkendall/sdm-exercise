@@ -11,7 +11,7 @@ You can use the same code for any of four Swedish bumblebees. The modelling meth
 | `"blaklockshumla"` | Blåklockshumla | *Bombus soroeensis* | 5,307 |
 | `"ljunghumla"` | Ljunghumla | *Bombus jonellus* | 1,852 |
 
-**Mission:** Pick a species, make its maps, and find one *surprise* in the result. When groups finish, compare maps: do different bees seem to favour different parts of Sweden?
+**Mission:** Pick a species, map its distrubtion and assess its climate suitability. When groups finish, compare maps: do different bees seem to favour different parts of Sweden?
 
 ## Before you start
 
