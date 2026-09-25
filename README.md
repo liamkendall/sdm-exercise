@@ -31,6 +31,7 @@ library(SDMtune)
 library(terra)
 library(sf)
 library(ggplot2)
+library(plotROC)
 
 set.seed(42)  # Repeatable thinning and background sampling
 ```
@@ -80,8 +81,17 @@ climate <- terra::rast("data/climate_sweden.tif")
 stopifnot(terra::nlyr(climate) == 3)
 names(climate) <- c("bio1", "bio12", "bio15")
 
+cols <- grDevices::colorRampPalette(
+  c("#143D55", "#287D91", "#A5CCC0", "#F4D392", "#D76346")
+)(100)
 names(climate)  # Check the names before plotting response curves
-plot(climate[[1]], main = "Annual mean temperature")
+
+terra::plot(climate[[1]], col = cols, main = "Annual mean temperature")
+terra::lines(sweden, col = "#294851")
+terra::plot(climate[[2]], col = cols, main = "Total annual precipitation")
+terra::lines(sweden, col = "#294851")
+terra::plot(climate[[3]], col = cols, main = "Precipitation seasonality")
+terra::lines(sweden, col = "#294851")
 ```
 
 **Look at the climate map:** What parts of Sweden are most different? What else, apart from climate, could make those regions differ for bumblebees?
