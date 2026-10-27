@@ -11,7 +11,7 @@ You can use the same code for any of four Swedish bumblebees. The modelling meth
 | `"blaklockshumla"` | Blåklockshumla | *Bombus soroeensis* | 5,307 |
 | `"ljunghumla"` | Ljunghumla | *Bombus jonellus* | 1,852 |
 
-**Mission:** Pick a species, map its distrubtion and assess its climate suitability. When groups finish, compare maps: do different bees seem to favour different parts of Sweden?
+**Mission:** Pick a species, map its distribution and assess its climate suitability. When groups finish, compare maps: do different bees seem to favour different parts of Sweden?
 
 ## Before you start
 
@@ -98,7 +98,7 @@ terra::lines(sweden, col = "#294851")
 
 ## 3. Map where people found the bee
 
-The supplied CSVs contain Swedish **RT90 coordinates (EPSG:3021)**. We transform them to longitude and latitude to match WorldClim. These are *observations*, not a systematic survey or proof that the species is absent elsewhere.
+The supplied CSVs contain Swedish **RT90 coordinates (EPSG:3021)**. We transform them to longitude and latitude to match the climate raster. These are *observations*, not a systematic survey or proof that the species is absent elsewhere.
 
 ```r
 records <- read.csv(file.path("data", bee$file), sep = ";",
